@@ -1,0 +1,9 @@
+2020-03-31 12:03:47,303 [INFO] File: test.csv was processed succsesfully
+2020-03-31 12:03:48,187 [INFO] File: test.json was processed succsesfully
+2020-03-31 12:03:48,191 [INFO] 127.0.0.1 [31/Mar/2020:09:03:45 +0000] "POST /predict HTTP/1.1" 200 1314308 "-" "Python/3.7 aiohttp/3.6.2"
+2020-03-31 12:03:48,699 [ERROR] Recieve file in unsupported format
+2020-03-31 12:03:48,722 [INFO] File test.csv is in unsupported format or invalid
+2020-03-31 12:03:48,835 [ERROR] Expected object or value
+2020-03-31 12:03:48,836 [ERROR] Recieve invalid file
+2020-03-31 12:03:48,853 [INFO] File test.json is in unsupported format or invalid
+2020-03-31 12:03:48,855 [INFO] 127.0.0.1 [31/Mar/2020:09:03:48 +0000] "POST /predict HTTP/1.1" 415 216 "-" "Python/3.7 aiohttp/3.6.2"
