@@ -59,6 +59,8 @@ def main():
     
     modeldatapath = config['model']['modeldatapath']
     loggfile = config['logging']['loggfile']
+    port = int(config['server']['port'])
+    route = config['server']['route']
     
     logging.basicConfig(level = logging.INFO,
                     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -70,9 +72,9 @@ def main():
     async def init():
         server = await Server.create(modeldatapath)
         app = web.Application()
-        app.add_routes([web.post('/predict', server.predict_handler),])
+        app.add_routes([web.post(route, server.predict_handler),])
         return app
-    web.run_app(init(), port=9000)
+    web.run_app(init(), port=port)
 
 if __name__ == "__main__":
     main()
