@@ -7,15 +7,12 @@ Created on Mon Mar 30 12:47:46 2020
 """
 import aiohttp
 from aiohttp import web
-from aiohttp.web import Request, StreamResponse
-from aiohttp.multipart import MultipartWriter
-import asyncio 
 from io import StringIO
-import logging
 from prediction import prediction_pipeline_async
 
+import logging
+import configparser
 
-logging.basicConfig(level = logging.INFO)
 
 routes = web.RouteTableDef()
 class Server:
@@ -48,7 +45,7 @@ class Server:
                     logging.info(f'File {part.filename} is in unsupported format or invalid')
             if succses:
                 status_code=200
-                resp = StreamResponse(status=status_code, headers={"Content-Type": f'multipart/form-data;boundary={boundary}'})
+                resp = web.StreamResponse(status=status_code, headers={"Content-Type": f'multipart/form-data;boundary={boundary}'})
                 await resp.prepare(request)
                 await mpwriter.write(resp)
             
@@ -56,7 +53,20 @@ class Server:
     
 
 def main():
-    modeldatapath = '../model/model.joblib.pkl'
+    configpath = '../config/server.conf'
+    config = configparser.ConfigParser()
+    config.read(configpath)
+    
+    modeldatapath = config['model']['modeldatapath']
+    loggfile = config['logging']['loggfile']
+    
+    logging.basicConfig(level = logging.INFO,
+                    format="%(asctime)s [%(levelname)s] %(message)s",
+                    handlers=[
+                        logging.FileHandler(loggfile),
+                        logging.StreamHandler()
+                    ])
+    
     async def init():
         server = await Server.create(modeldatapath)
         app = web.Application()
