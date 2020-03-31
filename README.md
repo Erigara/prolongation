@@ -11,6 +11,7 @@
 * pandas
 * scikit-learn
 * joblib
+
 Их можно установить выполнив команду:
 `./install.sh`
 
