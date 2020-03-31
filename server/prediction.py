@@ -9,7 +9,38 @@ import pandas as pd
 import joblib
 import logging
 from io import StringIO
+import asyncio
+from concurrent.futures import ProcessPoolExecutor
 
+def get_prediction_dataframe(data, model, features):
+    '''
+    Construct dataframe from input dataframe and new columns
+    contaning predictions and predictions probabilities for given data.
+
+    Parameters
+    ----------
+    data : pd.Dataframe
+        input data.
+    model :
+        object with predict method: accept dataframe 
+        as input and produce array of class labels.
+        object with predict_proba method: accept dataframe 
+        as input and produce array of class probabilities between [0, 1].
+        
+    featues : list of columns
+        subset of df's columns used for making predictions.
+
+    Returns
+    -------
+    predictions : pf.DataFrame
+        contaning predictions and predictions probabilities for given data.
+
+    '''
+    predictions = (data.assign(POLICY_IS_RENEWED=lambda df: predict(df, model, features),
+                               POLICY_IS_RENEWED_PROBABILITY=lambda df: predict_prob(df, model, features))
+                       .loc[:, ['POLICY_IS_RENEWED', 'POLICY_IS_RENEWED_PROBABILITY']])
+    return predictions
+    
 def predict(df, model, featues): 
     '''
     Return predictions for given data.
@@ -158,9 +189,56 @@ def prediction_pipeline(raw_data, data_type, modeldatapath):
     
     data = to_dataframe(raw_data, data_type, types)
     if not data is None:
-        predictions = (data.assign(POLICY_IS_RENEWED=lambda df: predict(df, model, features),
-                                   POLICY_IS_RENEWED_PROBABILITY=lambda df: predict_prob(df, model, features))
-                           .loc[:, ['POLICY_IS_RENEWED', 'POLICY_IS_RENEWED_PROBABILITY']])
+        predictions = get_prediction_dataframe(data, model, features)
         predictions = to_original_format(predictions, data_type)
         
         return predictions
+    
+async def prediction_pipeline_async(raw_data, data_type, modeldatapath):
+    '''
+    Create prediction from input raw_data 
+    and return them as string in data_type format.
+
+    Parameters
+    ----------
+    raw_data : str
+        input data.
+    data_type : str
+        mime type of input data.
+    modeldatapath : pathlike
+        path to model data used for making predictions.
+
+    Returns
+    -------
+    predictions : str
+        predictions in data_type format.
+
+    '''
+    loop = asyncio.get_event_loop()
+    with ProcessPoolExecutor() as pool:
+        model_data = await loop.run_in_executor(pool, 
+                                                joblib.load, 
+                                                modeldatapath)
+        model = model_data['model']
+        types = model_data['types']
+        features = model_data['features']
+        data = await loop.run_in_executor(pool, 
+                                          to_dataframe,
+                                          raw_data,
+                                          data_type,
+                                          types)
+        
+        if not data is None:
+            
+            predictions = await loop.run_in_executor(pool,
+                                                     get_prediction_dataframe,
+                                                     data,
+                                                     model,
+                                                     features)
+            
+            predictions = await loop.run_in_executor(pool,
+                                                     to_original_format,
+                                                     predictions, 
+                                                     data_type)
+            
+            return predictions

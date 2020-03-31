@@ -12,7 +12,7 @@ from aiohttp.multipart import MultipartWriter
 import asyncio 
 from io import StringIO
 import logging
-from prediction import prediction_pipeline
+from prediction import prediction_pipeline_async
 
 
 logging.basicConfig(level = logging.INFO)
@@ -38,7 +38,7 @@ class Server:
             async for part in await request.multipart():
                 content_type = part.headers[aiohttp.hdrs.CONTENT_TYPE]
                 partdata = await part.text()
-                prediction = prediction_pipeline(partdata, content_type, self.modeldatapath)
+                prediction = await prediction_pipeline_async(partdata, content_type, self.modeldatapath)
                 if prediction:
                     succses = True
                     mpwriter.append(StringIO(prediction),
