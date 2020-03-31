@@ -53,7 +53,7 @@ class Server:
     
 
 def main():
-    configpath = '../config/server.conf'
+    configpath = './config/server.conf'
     config = configparser.ConfigParser()
     config.read(configpath)
     
