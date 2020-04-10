@@ -1,9 +1,9 @@
 #!/bin/bash
 
-pip install --user aiohttp
-pip install --user pandas
-pip install --user scikit-learn
-pip install --user joblib
+pip install aiohttp
+pip install pandas
+pip install scikit-learn
+pip install joblib
 
 echo ------------
 echo Done
